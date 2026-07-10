@@ -196,9 +196,9 @@ class GameScene extends Phaser.Scene {
             nuevoPad.multiplicador = p.mult; // Le inyectamos cuánto vale esta plataforma
 
             // Le damos color a la zona dependiendo de qué tan codiciosa es la recompensa
-            let padColor = 0x44ff44; // Verde (tranqui)
-            if (p.mult >= 4 && p.mult <= 6) padColor = 0xffff44; // Amarillo (cuidado)
-            if (p.mult > 6) padColor = 0xff4444; // Rojo (sudores fríos)
+            let padColor = 0x44ff44; // Verde 
+            if (p.mult >= 4 && p.mult <= 6) padColor = 0xffff44; // Amarillo 
+            if (p.mult > 6) padColor = 0xff4444; // Rojo 
 
             padGfx.lineStyle(3, padColor);
             padGfx.beginPath();

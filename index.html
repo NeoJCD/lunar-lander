@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunar Lander</title>
+    <style>
+        /* === ESTILOS BASE === */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px 10px;
+            background-color: #050508;
+            background-image:
+                linear-gradient(rgba(255, 170, 0, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 170, 0, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: #d1d5db;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .contenedor {
+            width: 100%;
+            max-width: 1050px;
+            background: #0f0f13;
+            border: 1px solid #2a2a35;
+            border-top: 5px solid #fca311;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(252, 163, 17, 0.05);
+            overflow: hidden;
+        }
+
+        /* === CABECERA Y LOGO === */
+        .hero-banner {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            object-position: center 25%;
+            border-bottom: 2px solid #1a1a24;
+        }
+
+        .header-content {
+            text-align: center;
+            margin-top: -75px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-placa {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 15px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-img {
+            display: block;
+            height: 85px;
+            width: auto;
+        }
+
+        /* === TIPOGRAFÍA === */
+        h2 {
+            color: #fca311;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-left: 5px solid #fca311;
+            padding-left: 15px;
+            margin-top: 0;
+            font-size: 1.6em;
+        }
+
+        p {
+            line-height: 1.8;
+            font-size: 1.15em;
+            margin-bottom: 20px;
+            color: #b0b4bd;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        /* === DISEÑO DE SECCIONES === */
+        .seccion {
+            padding: 40px 50px;
+            border-bottom: 1px solid #1a1a24;
+        }
+
+        .grid-2-col {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        /* Nuevo diseño de historia: Texto al centro, imágenes a los lados */
+        .grid-historia {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 30px;
+            background: linear-gradient(180deg, #13131a 0%, #0f0f13 100%);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #22222d;
+            align-items: stretch;
+        }
+
+        /* === IMÁGENES === */
+        .img-marco {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-fluida {
+            width: 100%;
+            height: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #333;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .img-fluida:hover {
+            transform: translateY(-5px);
+            border-color: #fca311;
+        }
+
+        .caption {
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* === CONTROLES === */
+        .controles-box {
+            background-color: #0a0a0c;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #2a2a35;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .controles-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .controles-box li {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: #999;
+            display: flex;
+            align-items: center;
+        }
+
+        .tecla {
+            background-color: #222;
+            color: #fca311;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border-bottom: 3px solid #000;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.1em;
+        }
+
+        /* === BOTÓN JUGAR === */
+        .boton-contenedor {
+            text-align: center;
+            padding: 50px;
+            background: radial-gradient(circle at top, #15151c 0%, #0f0f13 100%);
+        }
+
+        .boton-jugar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 60px;
+            background-color: #00b4d8;
+            color: #000;
+            text-decoration: none;
+            font-size: 1.8em;
+            font-weight: 900;
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 0 #0077b6, 0 20px 30px rgba(0, 180, 216, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .boton-jugar:hover {
+            background-color: #90e0ef;
+            transform: translateY(2px);
+            box-shadow: 0 6px 0 #0077b6, 0 15px 25px rgba(0, 180, 216, 0.4);
+        }
+
+        .boton-jugar:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* Adaptabilidad para pantallas pequeñas */
+        @media (max-width: 900px) {
+
+            .grid-2-col,
+            .grid-historia {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .grid-historia {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contenedor">
+
+        <img src="assets/image1.jpg" alt="Marquesina Lunar Lander" class="hero-banner">
+
+        <div class="header-content">
+            <div class="logo-placa">
+                <img src="assets/logo.png" alt="Logo Lunar Lander" class="logo-img"
+                    onerror="this.src='assets/logo.jpg'">
+            </div>
+        </div>
+
+        <div class="seccion grid-2-col">
+            <div>
+                <h2>Detalle de misión</h2>
+                <p>Año 2077. Una tormenta solar ha barrido la cara oculta de la Luna, friendo los sistemas de navegación
+                    automatizados de las colonias mineras. Todo ha retrocedido a telemetría de bajo nivel y control
+                    manual. Como piloto jefe de la División de Recuperación Táctica, tu misión es descender manualmente
+                    en los 5 sectores geográficos más peligrosos para evacuar a los investigadores atrapados.</p>
+
+                <div class="controles-box">
+                    <ul>
+                        <li><span class="tecla">↑</span> Propulsor principal</li>
+                        <li><span class="tecla">←</span> <span class="tecla">→</span> Ajuste de rotación</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="img-marco">
+                <img src="assets/image3.jpg" alt="Gameplay Vectorial" class="img-fluida">
+            </div>
+        </div>
+
+        <div class="seccion">
+            <h2>La Historia del Arcade (1979)</h2>
+            <br>
+            <div class="grid-historia">
+
+                <div>
+                    <img src="assets/image2.jpg" alt="Gabinete Arcade Atari" class="img-fluida">
+                    <div class="caption">Mueble original Atari (1979)</div>
+                </div>
+
+                <div>
+                    <p>Lanzado en agosto de 1979, diez años después de la histórica misión del <strong>Apolo
+                            11</strong>, Lunar Lander revolucionó la industria al ser el <strong>primer juego de Atari
+                            en utilizar un monitor de gráficos vectoriales</strong>. En lugar de usar píxeles en bloque,
+                        el hardware dibujaba líneas de luz continuas, logrando una estética técnica inigualable.</p>
+
+                    <p>El nivel de simulación era extremadamente avanzado para la época. El panel de control del arcade
+                        incluía una pesada <strong>palanca de empuje con resortes mecánicos</strong>, lo que exigía a
+                        los jugadores dominar la física real de la inercia y la gravedad para no estrellar el vehículo.
+                    </p>
+                </div>
+
+                <div>
+                    <img src="assets/modulo.jpg" alt="Módulo Lunar Apolo" class="img-fluida"
+                        onerror="this.src='assets/image4.jpg'">
+                    <div class="caption">Módulo Lunar Apolo (NASA)</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="boton-contenedor">
+            <a href="lunar.html" class="boton-jugar">▶ INICIAR JUEGO</a>
+        </div>
+
+    </div>
+</body>
+
+</html>

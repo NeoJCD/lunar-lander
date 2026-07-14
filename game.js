@@ -2,13 +2,12 @@
 const NIVELES = [
     {
         nombre: "SECTOR 1: LLANURA BIVALENTE",
-        spawnX: 400, spawnY: 50, // Dónde nace la nave (siempre la ponemos en peligro de caer)
-        fuel: 1200, // Combustible generoso para el tutorial
+        spawnX: 400, spawnY: 50,
+        fuel: 1200,
         pads: [
-            { x: 150, y: 400, w: 100, mult: 2 }, // Zona segura y ancha
-            { x: 650, y: 400, w: 100, mult: 4 }  // Zona más pequeña, mejor premio
+            { x: 150, y: 400, w: 100, mult: 2 },
+            { x: 650, y: 400, w: 100, mult: 4 }
         ],
-        // Las coordenadas matemáticas que dibujan la línea blanca del suelo. 
         points: [0, 400, 100, 400, 200, 400, 300, 350, 500, 350, 600, 400, 700, 400, 800, 400]
     },
     {
@@ -17,7 +16,7 @@ const NIVELES = [
         fuel: 1000,
         pads: [
             { x: 100, y: 250, w: 60, mult: 2 },
-            { x: 400, y: 550, w: 60, mult: 5 }, // El fondo del cráter
+            { x: 400, y: 550, w: 60, mult: 5 },
             { x: 700, y: 250, w: 60, mult: 4 }
         ],
         points: [0, 250, 70, 250, 130, 250, 370, 550, 430, 550, 670, 250, 730, 250, 800, 250]
@@ -57,21 +56,19 @@ const NIVELES = [
     }
 ];
 
-// --- 2. CLASE DE LA NAVE 
+// --- 2. CLASE DE LA NAVE ---
 class Lander extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
         super(scene, x, y, 'vector_ship');
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
-
         this.setDamping(true);
-        this.setDrag(0.97); // Simula la inercia, hace que resbale un poco en el vacío
-        this.setMaxVelocity(200); // Evita que atravesemos paredes
+        this.setDrag(0.97);
+        this.setMaxVelocity(200);
     }
 
     aplicarEmpuje() {
-        // Calcula hacia dónde está apuntando la nariz de la nave y empuja en esa dirección
         this.scene.physics.velocityFromRotation(this.rotation - Math.PI / 2, 250, this.body.acceleration);
     }
 
@@ -93,7 +90,6 @@ class Lander extends Phaser.Physics.Arcade.Sprite {
 }
 
 // --- 3. CLASE DE LA ESCENA PRINCIPAL ---
-
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
@@ -103,36 +99,29 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        // Cargamos los efectos de sonido 
         this.load.audio('sonidoMotor', 'assets/motor.mp3');
         this.load.audio('sonidoExplosion', 'assets/explosion.mp3');
         this.load.audio('sonidoExito', 'assets/exito.mp3');
     }
 
     create() {
-        // Se ejecuta cada vez que arranca un nivel nuevo o reiniciamos.
-        // Limpiamos la mesa para empezar frescos.
         this.gameOver = false;
         this.levelComplete = false;
         this.terrainLines = [];
 
         let datosNivel = NIVELES[this.currentLevel];
 
-        // Le llenamos el tanque a la nave basándonos en lo que dice el nivel actual
         this.fuel = datosNivel.fuel;
         this.fuelAlEmpezarNivel = this.fuel;
 
-        // Preparamos los sonidos
         this.motorSound = this.sound.add('sonidoMotor', { volume: 0.5, loop: true }) || { play: () => { }, stop: () => { }, isPlaying: false };
         this.explosionSound = this.sound.add('sonidoExplosion', { volume: 0.8 }) || { play: () => { } };
         this.exitoSound = this.sound.add('sonidoExito', { volume: 0.8 }) || { play: () => { } };
 
-        // Construimos todo lo visual
         this.crearTexturaNave();
         this.construirNivel(datosNivel);
         this.configurarUI(datosNivel);
         this.configurarControles();
-
 
         this.timeEvent = this.time.addEvent({
             delay: 1000,
@@ -142,21 +131,19 @@ class GameScene extends Phaser.Scene {
     }
 
     crearTexturaNave() {
-
         if (this.textures.exists('vector_ship')) return;
         let shipGfx = this.make.graphics({ x: 0, y: 0, add: false });
         shipGfx.lineStyle(1.5, 0xffffff);
-        shipGfx.strokeRect(10, 5, 12, 12); // Cabina
-        shipGfx.moveTo(10, 5); shipGfx.lineTo(16, 0); shipGfx.lineTo(22, 5); // Punta
-        shipGfx.moveTo(10, 17); shipGfx.lineTo(4, 28); shipGfx.lineTo(8, 28); // Pata izquierda
-        shipGfx.moveTo(22, 17); shipGfx.lineTo(28, 28); shipGfx.lineTo(24, 28); // Pata derecha
-        shipGfx.moveTo(13, 17); shipGfx.lineTo(11, 21); shipGfx.lineTo(21, 21); shipGfx.lineTo(19, 17); // Tobera
+        shipGfx.strokeRect(10, 5, 12, 12);
+        shipGfx.moveTo(10, 5); shipGfx.lineTo(16, 0); shipGfx.lineTo(22, 5);
+        shipGfx.moveTo(10, 17); shipGfx.lineTo(4, 28); shipGfx.lineTo(8, 28);
+        shipGfx.moveTo(22, 17); shipGfx.lineTo(28, 28); shipGfx.lineTo(24, 28);
+        shipGfx.moveTo(13, 17); shipGfx.lineTo(11, 21); shipGfx.lineTo(21, 21); shipGfx.lineTo(19, 17);
         shipGfx.strokePath();
         shipGfx.generateTexture('vector_ship', 32, 32);
     }
 
     construirNivel(datosNivel) {
-        // Soltamos la nave en las coordenadas indicadas
         this.lander = new Lander(this, datosNivel.spawnX, datosNivel.spawnY);
 
         let terrainGfx = this.add.graphics();
@@ -166,15 +153,12 @@ class GameScene extends Phaser.Scene {
         terrainGfx.beginPath();
         terrainGfx.moveTo(pts[0], pts[1]);
 
-        // Ciclo para dibujar las montañas línea por línea
         for (let i = 0; i < pts.length - 2; i += 2) {
             let x1 = pts[i], y1 = pts[i + 1];
             let x2 = pts[i + 2], y2 = pts[i + 3];
 
             terrainGfx.lineTo(x2, y2);
 
-            // Verificamos si esta línea que acabamos de dibujar es un hueco para una plataforma.
-            // Si NO es una plataforma, la guardamos en terrainLines como un "muro mortal".
             let esPlataforma = false;
             for (let p of datosNivel.pads) {
                 if (y1 === p.y && y2 === p.y && x1 === (p.x - p.w / 2) && x2 === (p.x + p.w / 2)) {
@@ -187,18 +171,16 @@ class GameScene extends Phaser.Scene {
         }
         terrainGfx.strokePath();
 
-        // Ahora rellenamos los huecos con nuestras zonas de aterrizaje interactivas
         this.padsGroup = this.physics.add.staticGroup();
         let padGfx = this.add.graphics();
 
         for (let p of datosNivel.pads) {
             let nuevoPad = this.padsGroup.create(p.x, p.y, null).setSize(p.w, 10).setVisible(false);
-            nuevoPad.multiplicador = p.mult; // Le inyectamos cuánto vale esta plataforma
+            nuevoPad.multiplicador = p.mult;
 
-            // Le damos color a la zona dependiendo de qué tan codiciosa es la recompensa
-            let padColor = 0x44ff44; // Verde 
-            if (p.mult >= 4 && p.mult <= 6) padColor = 0xffff44; // Amarillo 
-            if (p.mult > 6) padColor = 0xff4444; // Rojo 
+            let padColor = 0x44ff44;
+            if (p.mult >= 4 && p.mult <= 6) padColor = 0xffff44;
+            if (p.mult > 6) padColor = 0xff4444;
 
             padGfx.lineStyle(3, padColor);
             padGfx.beginPath();
@@ -206,16 +188,13 @@ class GameScene extends Phaser.Scene {
             padGfx.lineTo(p.x + p.w / 2, p.y);
             padGfx.strokePath();
 
-            // Dibujamos el texto del multiplicador justo debajo de la zona
             this.add.text(p.x, p.y + 12, p.mult + 'X', { fontFamily: 'Courier', fontSize: '14px', fill: '#ffffff' }).setOrigin(0.5, 0);
         }
 
-        // Activamos el sensor: Si la nave toca alguna plataforma, avísale a checkLanding()
         this.physics.add.collider(this.lander, this.padsGroup, this.checkLanding, null, this);
     }
 
     configurarUI(datosNivel) {
-
         let fontStyle = { fontFamily: 'Courier', fontSize: '16px', fill: '#00ffcc' };
         this.textLeft = this.add.text(10, 10, '', fontStyle);
         this.textRight = this.add.text(560, 10, '', fontStyle);
@@ -225,14 +204,12 @@ class GameScene extends Phaser.Scene {
     }
 
     configurarControles() {
-
         this.cursors = this.input.keyboard.createCursorKeys();
         this.restartKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         this.nextKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
     }
 
     update() {
-
         if (this.gameOver) {
             if (this.motorSound && this.motorSound.isPlaying) this.motorSound.stop();
             if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
@@ -241,7 +218,6 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Si ya ganamos, esperamos que presiones [N] para avanzar
         if (this.levelComplete) {
             if (this.motorSound && this.motorSound.isPlaying) this.motorSound.stop();
             if (Phaser.Input.Keyboard.JustDown(this.nextKey)) {
@@ -251,14 +227,13 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Escuchamos las flechas direccionales y le decimos a la nave qué hacer
         if (this.cursors.left.isDown) this.lander.girarIzquierda();
         else if (this.cursors.right.isDown) this.lander.girarDerecha();
         else this.lander.detenerGiro();
 
         if (this.cursors.up.isDown && this.fuel > 0) {
             this.lander.aplicarEmpuje();
-            this.fuel -= 1; // Quemamos 1 de combustible por cada frame
+            this.fuel -= 1;
             if (this.motorSound && !this.motorSound.isPlaying) this.motorSound.play();
         } else {
             this.lander.detenerEmpuje();
@@ -270,25 +245,21 @@ class GameScene extends Phaser.Scene {
     }
 
     verificarColisionesTerreno() {
-        // hitbox de la nave
         let hitboxNave = new Phaser.Geom.Circle(this.lander.x, this.lander.y, 12);
 
-        // Comprobamos si ese círculo está tocando 
         for (let lineaMontaña of this.terrainLines) {
             if (Phaser.Geom.Intersects.LineToCircle(lineaMontaña, hitboxNave)) {
-                this.crashShip(); // ¡Bum!
+                this.crashShip();
                 break;
             }
         }
 
-        // También te mueres si te sales de la pantalla
         if (this.lander.y > 590 || this.lander.x < 5 || this.lander.x > 795) {
             this.crashShip();
         }
     }
 
     actualizarTelemetria() {
-
         let vSpeed = Math.round(this.lander.body.velocity.y);
         let hSpeed = Math.round(this.lander.body.velocity.x);
         let alt = Math.max(0, Math.round(600 - this.lander.y));
@@ -311,36 +282,59 @@ class GameScene extends Phaser.Scene {
     }
 
     checkLanding(lander, padTouched) {
-        // El juez de aterrizaje. Esta función solo se dispara si tocaste la línea verde/amarilla/roja
         if (this.gameOver || this.levelComplete) return;
 
         let vSpeed = lander.body.velocity.y;
         let hSpeed = Math.abs(lander.body.velocity.x);
         let angle = Math.abs(lander.angle);
 
-        // Tolerancias amigables: No puedes ir muy rápido hacia abajo, ni derrapando, ni de cabeza.
         if (vSpeed < 80 && hSpeed < 40 && angle < 25) {
-            this.physics.pause(); // Congelamos todo, lograste aterrizar
+            this.physics.pause();
 
-            // Calculamos los puntos
             let mult = padTouched.multiplicador;
             let puntosObtenidos = 50 * mult;
-            this.score += puntosObtenidos + Math.floor(this.fuel / 10); // Bono por ahorrar gasolina
+            this.score += puntosObtenidos + Math.floor(this.fuel / 10);
 
             if (this.exitoSound) this.exitoSound.play();
             this.levelComplete = true;
             this.actualizarTelemetria();
 
-            // Mostramos los mensajes de victoria
             if (this.currentLevel < NIVELES.length - 1) {
                 this.messageText.setText('ZONA ' + mult + 'X ASEGURADA\n+' + puntosObtenidos + ' PTS\n\nPRESIONA [N] PARA DESPEGAR');
                 this.messageText.setColor('#44ff44');
             } else {
                 this.messageText.setText('¡MISIÓN CUMPLIDA!\nHAS SOBREVIVIDO A LOS 5 SECTORES\n\nPUNTAJE FINAL: ' + this.score);
                 this.messageText.setColor('#ffff44');
+
+                // --- INTEGRACIÓN CON LA API DJANGO ---
+                setTimeout(() => {
+                    let nombrePiloto = prompt("¡Has sobrevivido a todos los sectores!\nIngresa tu nombre para la base de datos central:");
+
+                    if (nombrePiloto) {
+                        fetch('http://127.0.0.1:8000/api/puntajes/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                nombre: nombrePiloto,
+                                score: this.score // Enviamos tu puntuación final
+                            })
+                        })
+                            .then(respuesta => respuesta.json())
+                            .then(datos => {
+                                console.log("Respuesta del servidor local:", datos);
+                                alert("¡Transmisión exitosa! Tu puntaje ha sido guardado.");
+                            })
+                            .catch(error => {
+                                console.error("Error en la transmisión:", error);
+                                alert("Hubo un error de conexión con el backend.");
+                            });
+                    }
+                }, 1000);
+                // --- FIN DE LA INTEGRACIÓN ---
             }
         } else {
-            // Tocaste la plataforma, pero ibas demasiado rápido. Destrucción inminente.
             this.crashShip();
         }
     }
@@ -350,7 +344,6 @@ class GameScene extends Phaser.Scene {
         this.physics.pause();
         if (this.explosionSound) this.explosionSound.play();
 
-        // Creamos un efecto visual rápido para que la nave parpadee cuando explota
         this.time.addEvent({
             delay: 100, repeat: 5, callback: () => { this.lander.setVisible(!this.lander.visible); }
         });
@@ -361,11 +354,12 @@ class GameScene extends Phaser.Scene {
     }
 }
 
-// --- 4. CONFIGURACIÓN DEL JUEGO ---
+// --- 4. CONFIGURACIÓN E INICIALIZACIÓN DEL JUEGO ---
 const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
+    parent: 'lienzo-juego', // Permite que el juego se inyecte en tu div del HTML
     backgroundColor: '#050505',
     physics: {
         default: 'arcade',
@@ -374,4 +368,8 @@ const config = {
     scene: [GameScene]
 };
 
-const game = new Phaser.Game(config);
+// Se envuelve en una función para que arranque solo al presionar el botón
+let game;
+function iniciarJuego() {
+    game = new Phaser.Game(config);
+}

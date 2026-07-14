@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lunar Lander</title>
+
+    <!-- CARGAMOS EL MOTOR PHASER LOCALMENTE -->
+    <script src="node_modules/phaser/dist/phaser.js"></script>
+
     <style>
         /* === ESTILOS BASE === */
         * {
@@ -104,7 +108,7 @@
             align-items: center;
         }
 
-        /* Nuevo diseño de historia: Texto al centro, imágenes a los lados */
+        /* Nuevo diseño de historia */
         .grid-historia {
             display: grid;
             grid-template-columns: 1fr 1.5fr 1fr;
@@ -182,6 +186,59 @@
             font-size: 1.1em;
         }
 
+        /* === TABLA DE CLASIFICACIÓN === */
+        .tabla-contenedor {
+            background-color: #0a0a0c;
+            border: 1px solid #2a2a35;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .arcade-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ff00;
+            /* Letra verde retro */
+        }
+
+        .arcade-table th {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 2px solid #1a1a24;
+            color: #fca311;
+            text-transform: uppercase;
+        }
+
+        .arcade-table td {
+            padding: 12px 10px;
+            border-bottom: 1px dashed #22222d;
+            font-size: 1.1em;
+        }
+
+        /* Colores para el podio */
+        .rank-1 {
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Oro */
+        .rank-2 {
+            color: #c0c0c0;
+            font-weight: bold;
+        }
+
+        /* Plata */
+        .rank-3 {
+            color: #cd7f32;
+            font-weight: bold;
+        }
+
+        /* Bronce */
+
         /* === BOTÓN JUGAR === */
         .boton-contenedor {
             text-align: center;
@@ -196,6 +253,8 @@
             padding: 20px 60px;
             background-color: #00b4d8;
             color: #000;
+            border: none;
+            cursor: pointer;
             text-decoration: none;
             font-size: 1.8em;
             font-weight: 900;
@@ -218,6 +277,20 @@
             box-shadow: 0 0 0 transparent;
         }
 
+        /* === ESTILOS DE LA PANTALLA DEL JUEGO === */
+        #pantalla-juego {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #000;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
         /* Adaptabilidad para pantallas pequeñas */
         @media (max-width: 900px) {
 
@@ -235,7 +308,8 @@
 </head>
 
 <body>
-    <div class="contenedor">
+
+    <div id="menu-principal" class="contenedor">
 
         <img src="assets/image1.jpg" alt="Marquesina Lunar Lander" class="hero-banner">
 
@@ -246,6 +320,7 @@
             </div>
         </div>
 
+        <!-- SECCIÓN 1: DETALLES Y CONTROLES -->
         <div class="seccion grid-2-col">
             <div>
                 <h2>Detalle de misión</h2>
@@ -266,6 +341,32 @@
             </div>
         </div>
 
+        <!-- === NUEVA SECCIÓN: TABLA DE CLASIFICACIÓN === -->
+        <div class="seccion">
+            <h2>Clasificación Global (Top 10)</h2>
+            <p>Los mejores pilotos de la División de Recuperación Táctica con los alunizajes más precisos.</p>
+
+            <div class="tabla-contenedor">
+                <table class="arcade-table">
+                    <thead>
+                        <tr>
+                            <th>Rango</th>
+                            <th>Piloto</th>
+                            <th>Puntaje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Aquí Javascript inyectará los datos -->
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #888;">📡 Conectando con el servidor
+                                central...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: HISTORIA -->
         <div class="seccion">
             <h2>La Historia del Arcade (1979)</h2>
             <br>
@@ -298,10 +399,71 @@
         </div>
 
         <div class="boton-contenedor">
-            <a href="lunar.html" class="boton-jugar">▶ INICIAR JUEGO</a>
+            <button class="boton-jugar" onclick="arrancarSistema()">▶ INICIAR JUEGO</button>
         </div>
 
     </div>
+
+    <!-- === PANTALLA DONDE VIVIRÁ EL JUEGO === -->
+    <div id="pantalla-juego">
+        <div id="lienzo-juego"></div>
+    </div>
+
+    <!-- CARGAMOS TU ARCHIVO GAME.JS -->
+    <script src="game.js"></script>
+
+    <!-- SCRIPT QUE CAMBIA LAS PANTALLAS Y CARGA EL PUNTAJE-->
+    <script>
+        function arrancarSistema() {
+            // Oculta el menú
+            document.getElementById('menu-principal').style.display = 'none';
+            // Quita los márgenes para pantalla completa
+            document.body.style.padding = '0';
+            // Muestra la pantalla negra del juego
+            document.getElementById('pantalla-juego').style.display = 'flex';
+
+            // Ejecuta la función de Phaser que está en game.js
+            iniciarJuego();
+        }
+
+        // Función para cargar los puntajes desde Django
+        function cargarLeaderboard() {
+            fetch('http://localhost:8000/api/puntajes/')
+                .then(respuesta => respuesta.json())
+                .then(datos => {
+                    const tbody = document.getElementById('leaderboard-body');
+                    tbody.innerHTML = ''; // Limpiamos el texto de "Conectando..."
+
+                    if (datos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #888;">Aún no hay registros en la base de datos. ¡Sé el primero!</td></tr>';
+                        return;
+                    }
+
+                    // Recorremos los datos y creamos las filas
+                    datos.forEach((jugador, index) => {
+                        let claseRango = '';
+                        if (index === 0) claseRango = 'rank-1';
+                        else if (index === 1) claseRango = 'rank-2';
+                        else if (index === 2) claseRango = 'rank-3';
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="${claseRango}">#${index + 1}</td>
+                            <td class="${claseRango}">${jugador.nombre.toUpperCase()}</td>
+                            <td class="${claseRango}">${jugador.score} PTS</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar la tabla:", error);
+                    document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="3" style="text-align: center; color: #ff5555;">⚠️ Sistema de clasificaciones fuera de línea.</td></tr>';
+                });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', cargarLeaderboard);
+    </script>
 </body>
 
 </html>

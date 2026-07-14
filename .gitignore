@@ -1,1 +1,12 @@
+# Dependencias de Node (Phaser)
 node_modules/
+
+# Entorno virtual y base de datos de Python
+backend/venv/
+backend/db.sqlite3
+__pycache__/
+*.pyc
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
